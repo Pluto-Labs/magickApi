@@ -3,7 +3,7 @@ const app = express()
 const port = 3000
 
 app.get('/', (req, res) => {
-  res.status(200).sendFile('./src/img/convert.jpg')
+  res.status(200).sendFile(__dirname + '/src/img/convert.jpg')
 })
 
 app.listen(port, () => {
