@@ -11,8 +11,9 @@ app.get('/convertido', (req, res) => {
   res.status(200).sendFile(__dirname + '/src/img/convert.jpg')
 })
 
-app.get('/convert', (req, res) => {
-  exec("ls -la", (error, stdout, stderr) => {
+app.get('/convert/:size', (req, res) => {
+  const { size } = req.params
+  exec(`gm convert teste.jpg -resize ${size} convert.jpg`, (error, stdout, stderr) => {
     if (error) {
       res.status(500).send(`error: ${error.message}`)
       return
