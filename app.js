@@ -24,7 +24,7 @@ app.get('/convert/:size', (req, res) => {
       return
     }
 
-    res.status(200).send(`stdout: ${stdout}`)
+    res.status(200).send(`Convertido com sucesso!`)
   })
 })
 
