@@ -13,7 +13,7 @@ app.get('/convertido', (req, res) => {
 
 app.get('/convert/:size', (req, res) => {
   const { size } = req.params
-  exec(`gm convert teste.jpg -resize ${size} convert.jpg`, (error, stdout, stderr) => {
+  exec(`gm convert src/img/teste.jpg -resize ${size} src/img/convert.jpg`, (error, stdout, stderr) => {
     if (error) {
       res.status(500).send(`error: ${error.message}`)
       return
