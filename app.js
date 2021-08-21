@@ -59,12 +59,12 @@ const downloadImage = (imageUrl, imageName) => {
   })
 }
 
-app.post('/convert', (req, res) => {
+app.post('/convert', async (req, res) => {
   const { imageName, imageUrl } = req.body
   
   const image = formatImageData(imageName)
 
-  const processedImage = downloadImage(imageUrl, image.newName)
+  const processedImage = await downloadImage(imageUrl, image.newName)
   console.log(processedImage)
   res.status(200).send('ok')
   // if(processedImage.sendFile) {
