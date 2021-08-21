@@ -1,17 +1,19 @@
 const express = require('express')
 const { exec } = require("child_process")
-const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
+const https = require('https')
 const app = express()
 const port = 3000
 
 app.use(express.json())
 
-const formatImageData = originalname => {
+const IMG_DIR = 'src/img/'
 
-  const name = originalname.split('.').slice(0, -1).join('.')
-  const ext = path.extname(originalname)
+const formatImageData = imageName => {
+
+  const name = imageName.split('.').slice(0, -1).join('.')
+  const ext = path.extname(imageName)
   const newName = `${name}_converted${ext}`
 
   const image = {
@@ -22,33 +24,25 @@ const formatImageData = originalname => {
   return image
 }
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'src/img/')
-  },
-  filename: function (req, file, cb) {
-    const image = formatImageData(file.originalname)
-    cb(null, image.newName)
-  }
-})
+const downloadImage = (imageUrl, imageName) => {
 
-const upload = multer({
-  storage: storage,
-  fileFilter: (req, file, cb) => {
-    const image = formatImageData(file.originalname)
+  var file = fs.createWriteStream(IMG_DIR+imageName)
+  var request = https.get(imageUrl, function (response) {
+    response.pipe(file)
+    file.on('finish', function () {
+      file.close()
+    })
+  }).on('error', function (err) {
+    fs.unlink(IMG_DIR)
+  })
+}
 
-    if (fs.existsSync(`src/img/${image.newName}`)) {
-      cb(null, false)
-    } else {
-      cb(null, true)
-    }
+app.post('/convert', (req, res) => {
+  const { originalName, imageUrl } = req.body
+  
+  const image = formatImageData(imageName)
 
-  }
-})
-
-app.post('/convert', upload.single('discord'), (req, res) => {
-  const { originalName } = req.body
-  const image = formatImageData(originalName)
+  downloadImage(imageUrl, image.newName)
 
   exec(`convert src/img/${image.newName} -liquid-rescale 60x60%! src/img/${image.newName}`, (error, stdout, stderr) => {
     if (error) {
