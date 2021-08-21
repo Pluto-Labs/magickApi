@@ -26,25 +26,25 @@ const formatImageData = imageName => {
 
 const downloadImage = (imageUrl, imageName) => {
 
-  // var file = fs.createWriteStream(IMG_DIR+imageName)
-  // const request = https.get(imageUrl, function (response) {
-  //   response.pipe(file)
-  //   file.on('finish', function () {
-  //     file.close()
+  var file = fs.createWriteStream(IMG_DIR+imageName)
+  const request = https.get(imageUrl, function (response) {
+    response.pipe(file)
+    file.on('finish', function () {
+      file.close()
 
-      exec(`convert "${imageUrl}" -liquid-rescale 55x55%! -resize 110% src/img/${imageName}`, (error, stdout, stderr) => {
+      exec(`convert src/img/${imageName} -liquid-rescale 55x55%! -resize 110% src/img/${imageName}`, (error, stdout, stderr) => {
         if (error) {
           console.error(`error: ${error.message}`)
         }
         return
       })
 
-  //   })
-  // }).on('error', function (error) {
-  //   fs.unlink(IMG_DIR)
-  //   console.error(`error: ${error.message}`)
-  //   return
-  // })
+    })
+  }).on('error', function (error) {
+    fs.unlink(IMG_DIR)
+    console.error(`error: ${error.message}`)
+    return
+  })
 }
 
 app.post('/convert', (req, res) => {
