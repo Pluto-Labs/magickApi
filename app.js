@@ -32,7 +32,7 @@ const downloadImage = (imageUrl, imageName, res) => {
     file.on('finish', function () {
       file.close()
 
-      exec(`convert src/img/${imageName} -liquid-rescale 50x100%! -resize 110% src/img/${imageName}`, (error, stdout, stderr) => {
+      exec(`convert src/img/${imageName} -liquid-rescale 100x100%! -resize 110% src/img/${imageName}`, (error, stdout, stderr) => {
         if (error) {
           console.error(`error: ${error.message}`)
         } else {
