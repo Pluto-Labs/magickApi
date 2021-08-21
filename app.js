@@ -34,30 +34,17 @@ const downloadImage = (imageUrl, imageName) => {
 
       exec(`convert src/img/${imageName} -liquid-rescale 60x60%! src/img/${imageName}`, (error, stdout, stderr) => {
         if (error) {
-          return {
-            status: 500,
-            message: error.message,
-            sendFile: false
-          }
-        } else {
-          return {
-            status: 200,
-            url: `${__dirname}/src/img/${imageName}`,
-            sendFile: true
-          }
+          console.error(`error: ${error.message}`)
         }
+        return
       })
 
     })
   }).on('error', function (error) {
     fs.unlink(IMG_DIR)
-    return {
-      status: 500,
-      message: error.message,
-      sendFile: false
-    }
+    console.error(`error: ${error.message}`)
+    return
   })
-  return request
 }
 
 app.post('/convert', (req, res) => {
@@ -65,15 +52,14 @@ app.post('/convert', (req, res) => {
   
   const image = formatImageData(imageName)
 
-  const processedImage = downloadImage(imageUrl, image.newName)
-  console.log(processedImage)
-  res.status(200).send('ok')
-  // if(processedImage.sendFile) {
-  //   res.status(processedImage.status).sendFile(processedImage.url)
-  // } else {
-  //   res.status(processedImage.status).send(processedImage.message)
-  // }
-  
+  try {
+    if (!fs.existsSync(`src/img/${image.newName}`)) {
+      downloadImage(imageUrl, image.newName)
+    }
+    res.status(200).sendFile(`${__dirname}/src/img/${image.newName}`)
+  } catch (error) {
+    res.status(500).send(`error: ${error.message}`)
+  }
 })
 
 app.get('/convert/:name', (req, res) => {
