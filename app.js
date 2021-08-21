@@ -24,7 +24,7 @@ const formatImageData = imageName => {
   return image
 }
 
-const downloadImage = (imageUrl, imageName) => {
+const downloadImage = (imageUrl, imageName, res) => {
 
   var file = fs.createWriteStream(IMG_DIR+imageName)
   const request = https.get(imageUrl, function (response) {
@@ -35,6 +35,8 @@ const downloadImage = (imageUrl, imageName) => {
       exec(`convert src/img/${imageName} -liquid-rescale 55x55%! -resize 110% src/img/${imageName}`, (error, stdout, stderr) => {
         if (error) {
           console.error(`error: ${error.message}`)
+        } else {
+          res.status(200).send({ imageName: imageName, error: false })
         }
         return
       })
@@ -54,9 +56,10 @@ app.post('/convert', (req, res) => {
 
   try {
     if (!fs.existsSync(`src/img/${image.newName}`)) {
-      downloadImage(imageUrl, image.newName)
+      downloadImage(imageUrl, image.newName, res)
+    } else {
+      res.status(200).send({ imageName: image.newName, error: false })
     }
-    res.status(200).send({ imageName: image.newName, error: false })
   } catch (error) {
     res.status(500).send({ message: error.message, error: true })
   }
