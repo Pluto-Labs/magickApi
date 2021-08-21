@@ -65,11 +65,13 @@ app.post('/convert', (req, res) => {
   const image = formatImageData(imageName)
 
   const processedImage = downloadImage(imageUrl, image.newName)
-  if(processedImage.sendFile) {
-    res.status(processedImage.status).sendFile(processedImage.url)
-  } else {
-    res.status(processedImage.status).send(processedImage.message)
-  }
+  console.log(processedImage)
+  res.status(200).send('ok')
+  // if(processedImage.sendFile) {
+  //   res.status(processedImage.status).sendFile(processedImage.url)
+  // } else {
+  //   res.status(processedImage.status).send(processedImage.message)
+  // }
   
 })
 
