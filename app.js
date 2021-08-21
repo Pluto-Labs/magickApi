@@ -1,33 +1,66 @@
 const express = require('express')
 const { exec } = require("child_process")
+const multer = require('multer')
+const path = require('path')
+const fs = require('fs')
 const app = express()
 const port = 3000
 
-app.get('/original', (req, res) => {
-  res.status(200).sendFile(__dirname + '/src/img/teste.jpg')
+app.use(express.json())
+
+const formatImageData = originalname => {
+
+  const name = originalname.split('.').slice(0, -1).join('.')
+  const ext = path.extname(originalname)
+  const newName = `${name}_converted${ext}`
+
+  const image = {
+    ext,
+    newName
+  }
+
+  return image
+}
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'src/img/')
+  },
+  filename: function (req, file, cb) {
+    const image = formatImageData(file.originalname)
+    cb(null, image.newName)
+  }
 })
 
-app.get('/convertido', (req, res) => {
-  res.status(200).sendFile(__dirname + '/src/img/convert.jpg')
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    const image = formatImageData(file.originalname)
+
+    if (fs.existsSync(`src/img/${image.newName}`)) {
+      cb(null, false)
+    } else {
+      cb(null, true)
+    }
+
+  }
 })
 
-app.get('/convert/:size', (req, res) => {
-  const { size } = req.params
-  exec(`gm convert src/img/teste.jpg -resize ${size} src/img/convert.jpg`, (error, stdout, stderr) => {
+app.post('/convert', upload.single('discord'), (req, res) => {
+  const { originalName } = req.body
+  const image = formatImageData(originalName)
+
+  exec(`convert src/img/${image.newName} -liquid-rescale 60x60%! src/img/${image.newName}`, (error, stdout, stderr) => {
     if (error) {
       res.status(500).send(`error: ${error.message}`)
       return
+    } else {
+      res.status(200).sendFile(`${__dirname}/src/img/${image.newName}`)
     }
+  }
 
-    if (stderr) {
-      res.status(200).send(`stderr: ${stderr}`)
-      return
-    }
-
-    res.status(200).send(`Convertido com sucesso!`)
-  })
 })
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+  console.log(`Example app listening at port:${port}`)
 })
