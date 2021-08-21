@@ -38,7 +38,7 @@ const downloadImage = (imageUrl, imageName) => {
 }
 
 app.post('/convert', (req, res) => {
-  const { originalName, imageUrl } = req.body
+  const { imageName, imageUrl } = req.body
   
   const image = formatImageData(imageName)
 
