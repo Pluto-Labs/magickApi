@@ -57,7 +57,7 @@ app.post('/convert', upload.single('discord'), (req, res) => {
     } else {
       res.status(200).sendFile(`${__dirname}/src/img/${image.newName}`)
     }
-  }
+  })
 
 })
 
