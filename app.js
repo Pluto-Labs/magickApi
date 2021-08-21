@@ -55,6 +55,11 @@ app.post('/convert', (req, res) => {
 
 })
 
+app.get('/convert/:name', (req, res) => {
+  const { name } = req.query
+  res.status(200).sendFile(`${__dirname}/src/img/${name}`)
+})
+
 app.listen(port, () => {
   console.log(`Example app listening at port:${port}`)
 })
