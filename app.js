@@ -34,16 +34,28 @@ const downloadImage = (imageUrl, imageName) => {
 
       exec(`convert src/img/${imageName} -liquid-rescale 60x60%! src/img/${imageName}`, (error, stdout, stderr) => {
         if (error) {
-          res.status(500).send(`error: ${error.message}`)
-          return
+          return {
+            status: 500,
+            message: error.message,
+            sendFile: false
+          }
         } else {
-          res.status(200).sendFile(`${__dirname}/src/img/${imageName}`)
+          return {
+            status: 200,
+            url: `${__dirname}/src/img/${imageName}`,
+            sendFile: true
+          }
         }
       })
 
     })
-  }).on('error', function (err) {
+  }).on('error', function (error) {
     fs.unlink(IMG_DIR)
+    return {
+      status: 500,
+      message: error.message,
+      sendFile: false
+    }
   })
 }
 
@@ -52,7 +64,13 @@ app.post('/convert', (req, res) => {
   
   const image = formatImageData(imageName)
 
-  downloadImage(imageUrl, image.newName)
+  const processedImage = downloadImage(imageUrl, image.newName)
+  if(processedImage.sendFile) {
+    res.status(processedImage.status).sendFile(processedImage.url)
+  } else {
+    res.status(processedImage.status).send(processedImage.message)
+  }
+  
 })
 
 app.get('/convert/:name', (req, res) => {
