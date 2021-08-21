@@ -27,7 +27,7 @@ const formatImageData = imageName => {
 const downloadImage = (imageUrl, imageName) => {
 
   var file = fs.createWriteStream(IMG_DIR+imageName)
-  var request = https.get(imageUrl, function (response) {
+  const request = https.get(imageUrl, function (response) {
     response.pipe(file)
     file.on('finish', function () {
       file.close()
@@ -57,14 +57,15 @@ const downloadImage = (imageUrl, imageName) => {
       sendFile: false
     }
   })
+  return request
 }
 
-app.post('/convert', async (req, res) => {
+app.post('/convert', (req, res) => {
   const { imageName, imageUrl } = req.body
   
   const image = formatImageData(imageName)
 
-  const processedImage = await downloadImage(imageUrl, image.newName)
+  const processedImage = downloadImage(imageUrl, image.newName)
   console.log(processedImage)
   res.status(200).send('ok')
   // if(processedImage.sendFile) {
