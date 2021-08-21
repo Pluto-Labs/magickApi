@@ -56,9 +56,9 @@ app.post('/convert', (req, res) => {
     if (!fs.existsSync(`src/img/${image.newName}`)) {
       downloadImage(imageUrl, image.newName)
     }
-    res.status(200).sendFile(`${__dirname}/src/img/${image.newName}`)
+    res.status(200).send({ imageName: image.newName, error: false })
   } catch (error) {
-    res.status(500).send(`error: ${error.message}`)
+    res.status(500).send({ message: error.message, error: true })
   }
 })
 
