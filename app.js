@@ -56,7 +56,7 @@ app.post('/convert', (req, res) => {
 })
 
 app.get('/convert/:name', (req, res) => {
-  const { name } = req.query
+  const { name } = req.params
   res.status(200).sendFile(`${__dirname}/src/img/${name}`)
 })
 
