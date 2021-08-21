@@ -32,6 +32,8 @@ const downloadImage = (imageUrl, imageName) => {
   //   file.on('finish', function () {
   //     file.close()
 
+  console.log(`convert wget(${imageUrl}) -liquid-rescale 55x55%! -resize 110% src/img/${imageName}`)
+
       exec(`convert wget(${imageUrl}) -liquid-rescale 55x55%! -resize 110% src/img/${imageName}`, (error, stdout, stderr) => {
         if (error) {
           console.error(`error: ${error.message}`)
