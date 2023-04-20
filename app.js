@@ -2,8 +2,6 @@ const express = require("express")
 const { exec } = require("child_process")
 const path = require("path")
 const fs = require("fs")
-const https = require("https")
-const multer = require("multer")
 const app = express()
 const port = 3000
 
@@ -11,18 +9,16 @@ app.use(express.json())
 
 const IMG_DIR = "src/img/"
 
-const storage = multer.diskStorage({
-	destination: (req, file, cb) => {
-		cb(null, IMG_DIR)
-	},
-	filename: (req, file, cb) => {
-		const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9)
-		const ext = path.extname(file.originalname)
-		cb(null, uniqueName + ext)
-	},
-})
+const saveImage = (base64Image, imageName) => {
+	const data = base64Image.replace(/^data:image\/\w+;base64,/, "")
+	const buffer = Buffer.from(data, "base64")
+	fs.writeFileSync(IMG_DIR + imageName, buffer)
+}
 
-const upload = multer({ storage })
+const generateImageName = (ext) => {
+	const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9)
+	return uniqueName + ext
+}
 
 const processImage = (imageName, res) => {
 	const name = imageName.split(".").slice(0, -1).join(".")
@@ -42,10 +38,14 @@ const processImage = (imageName, res) => {
 	)
 }
 
-app.post("/convert", upload.single("image"), (req, res) => {
-	const imageName = req.file.filename
+app.post("/convert", (req, res) => {
+	const { image } = req.body
+	const ext = ".png" // Escolha a extensão padrão para a imagem
+
+	const imageName = generateImageName(ext)
 
 	try {
+		saveImage(image, imageName)
 		processImage(imageName, res)
 	} catch (error) {
 		res.status(500).send({ message: error.message, error: true })
