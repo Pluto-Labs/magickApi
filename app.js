@@ -1,75 +1,62 @@
-const express = require('express')
+const express = require("express")
 const { exec } = require("child_process")
-const path = require('path')
-const fs = require('fs')
-const https = require('https')
+const path = require("path")
+const fs = require("fs")
+const https = require("https")
+const multer = require("multer")
 const app = express()
 const port = 3000
 
 app.use(express.json())
 
-const IMG_DIR = 'src/img/'
+const IMG_DIR = "src/img/"
 
-const formatImageData = imageName => {
-
-  const name = imageName.split('.').slice(0, -1).join('.')
-  const ext = path.extname(imageName)
-  const newName = `${name}_converted${ext}`
-
-  const image = {
-    ext,
-    newName
-  }
-
-  return image
-}
-
-const downloadImage = (imageUrl, imageName, res) => {
-
-  var file = fs.createWriteStream(IMG_DIR+imageName)
-  const request = https.get(imageUrl, function (response) {
-    response.pipe(file)
-    file.on('finish', function () {
-      file.close()
-
-      exec(`convert src/img/${imageName} -liquid-rescale 55x55%! -resize 110% src/img/${imageName}`, (error, stdout, stderr) => {
-        if (error) {
-          console.error(`error: ${error.message}`)
-        } else {
-          res.status(200).send({ imageName: imageName, error: false })
-        }
-        return
-      })
-
-    })
-  }).on('error', function (error) {
-    fs.unlink(IMG_DIR)
-    console.error(`error: ${error.message}`)
-    return
-  })
-}
-
-app.post('/convert', (req, res) => {
-  const { imageName, imageUrl } = req.body
-  
-  const image = formatImageData(imageName)
-
-  try {
-    if (!fs.existsSync(`src/img/${image.newName}`)) {
-      downloadImage(imageUrl, image.newName, res)
-    } else {
-      res.status(200).send({ imageName: image.newName, error: false })
-    }
-  } catch (error) {
-    res.status(500).send({ message: error.message, error: true })
-  }
+const storage = multer.diskStorage({
+	destination: (req, file, cb) => {
+		cb(null, IMG_DIR)
+	},
+	filename: (req, file, cb) => {
+		const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9)
+		const ext = path.extname(file.originalname)
+		cb(null, uniqueName + ext)
+	},
 })
 
-app.get('/convert/:name', (req, res) => {
-  const { name } = req.params
-  res.status(200).sendFile(`${__dirname}/src/img/${name}`)
+const upload = multer({ storage })
+
+const processImage = (imageName, res) => {
+	const name = imageName.split(".").slice(0, -1).join(".")
+	const ext = path.extname(imageName)
+	const newName = `${name}_converted${ext}`
+
+	exec(
+		`convert ${IMG_DIR}${imageName} -liquid-rescale 55x55%! -resize 110% ${IMG_DIR}${newName}`,
+		(error, stdout, stderr) => {
+			if (error) {
+				console.error(`error: ${error.message}`)
+			} else {
+				res.status(200).send({ imageName: newName, error: false })
+			}
+			return
+		}
+	)
+}
+
+app.post("/convert", upload.single("image"), (req, res) => {
+	const imageName = req.file.filename
+
+	try {
+		processImage(imageName, res)
+	} catch (error) {
+		res.status(500).send({ message: error.message, error: true })
+	}
+})
+
+app.get("/convert/:name", (req, res) => {
+	const { name } = req.params
+	res.status(200).sendFile(`${__dirname}/src/img/${name}`)
 })
 
 app.listen(port, () => {
-  console.log(`Example app listening at port:${port}`)
+	console.log(`Example app listening at port:${port}`)
 })
