@@ -36,15 +36,26 @@ const processImage = (imageName, res) => {
 	const newName = `${name}_converted${ext}`
 
 	exec(
-		`convert ${IMG_DIR}${imageName} -liquid-rescale 55x55%! -resize 110% ${IMG_DIR}${newName}`,
+		`identify -format "%wx%h" ${IMG_DIR}${imageName}`,
 		(error, stdout, stderr) => {
 			if (error) {
 				console.error(`error: ${error.message}`)
 			} else {
-				deleteImage(imageName)
-				res.status(200).send({ imageName: newName, error: false })
+				const dimensions = stdout.trim()
+
+				exec(
+					`convert ${IMG_DIR}${imageName} -liquid-rescale 55x55%! -resize ${dimensions}! ${IMG_DIR}${newName}`,
+					(error, stdout, stderr) => {
+						if (error) {
+							console.error(`error: ${error.message}`)
+						} else {
+							deleteImage(imageName)
+							res.status(200).send({ imageName: newName, error: false })
+						}
+						return
+					}
+				)
 			}
-			return
 		}
 	)
 }
