@@ -20,16 +20,6 @@ const generateImageName = (ext) => {
 	return uniqueName + ext
 }
 
-const deleteImage = (imageName) => {
-	fs.unlink(IMG_DIR + imageName, (error) => {
-		if (error) {
-			console.error(`Error deleting image: ${error.message}`)
-		} else {
-			console.log(`Image ${imageName} deleted successfully`)
-		}
-	})
-}
-
 const processImage = (imageName, res) => {
 	const name = imageName.split(".").slice(0, -1).join(".")
 	const ext = path.extname(imageName)
@@ -49,7 +39,6 @@ const processImage = (imageName, res) => {
 						if (error) {
 							console.error(`error: ${error.message}`)
 						} else {
-							deleteImage(imageName)
 							res.status(200).send({ imageName: newName, error: false })
 						}
 						return
@@ -62,7 +51,7 @@ const processImage = (imageName, res) => {
 
 app.post("/convert", (req, res) => {
 	const { image } = req.body
-	const ext = ".png" // Escolha a extensão padrão para a imagem
+	const ext = ".png"
 
 	const imageName = generateImageName(ext)
 
